@@ -1,2 +1,0 @@
-
-"shift-roster-app" 
