@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>User Form</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .calendar {
+      width: 100%;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+      overflow:
+        hidden;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background:
+        #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .calendar table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .calendar th {
+      background: #e3f2fd;
+      padding: 12px 8px;
+      font-weight: 600;
+      text-align: center;
+      border-bottom: 2px solid #1976d2;
+      font-size: 0.9rem;
+    }
+
+    .calendar td {
+      height: 120px;
+      vertical-align: top;
+      cursor: pointer;
+      border: 1px solid #e9ecef;
+      padding: 6px;
+      position: relative;
+      transition: background-color 0.2s;
+      width: 14.28%;
+    }
+
+    .calendar td:hover {
+      background-color: #f5f5f5;
+    }
+
+    .calendar .day-number {
+      font-weight: 500;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    .today {
+      background: #fff3cd !important;
+      border: 2px solid #ffc107 !important;
+    }
+
+    .today .day-number {
+      color: #856404;
+      font-weight: bold;
+    }
+
+    .shift {
+      display: block;
+      font-size: 0.78rem;
+      margin-top: 3px;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .s1 {
+      background: #d1e7dd;
+      color: #0f5132;
+    }
+
+    .s2 {
+      background: #cff4fc;
+      color: #055160;
+    }
+
+    .s3 {
+      background: #f8d7da;
+      color: #842029;
+    }
+
+    .g {
+      background: #fff3cd;
+      color: #664d03;
+    }
+
+    .off {
+      background: #e2e3e5;
+      color: #41464b;
+    }
+.req-off {
+  height: 25px;
+        background: #f9cbcb;
+        color: #991b1b;
+        font-size: 12px;
+        padding: 2px 4px;
+        border-radius: 3px;
+        margin-top: 2px;
+        text-align: center;
+        font-weight: bold;
+        display: block;
+      }
+
+    .note {
+      font-size: 0.75rem;
+      border-radius: 4px;
+      padding: 2px 4px;
+      display: block;
+      margin-top: 4px;
+    }
+
+    .nav-button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background-color 0.2s;
+    }
+
+    .nav-button:hover {
+      background: #0056b3;
+    }
+
+    .summary {
+      margin-top: 20px;
+    }
+
+    .summary table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .summary th,
+    .summary td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .summary th {
+      background: #f1f1f1;
+    }
+
+    #pen {
+      background-color: #fee2e2;
+      color: #991b1b;
+      border: none;
+      padding: 8px 12px;
+      display: flex;
+      justify-content:
+        center;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background-color 0.2s;
+    }
+
+    .legend {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .legend div {
+      font-size: 0.85rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+  </style>
+
+
+</head>
+
+<body>
+  <div class="container mx-auto px-4 py-8 max-w-7xl">
+    <!-- Header -->
+    <header class="mb-10 text-center">
+      <h1 class="text-3xl md:text-4xl font-bold text-blue-800">Team Shift Roster</h1>
+      <p class="text-gray-600 mt-2">Efficient shift management for your team</p>
+
+      <div class="mt-6 flex justify-center">
+        <img
+          src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+          alt="Team of diverse professionals working together in a modern office environment"
+          class="rounded-lg shadow-md w-full max-w-md h-48 object-cover" />
+      </div>
+    </header>
+
+    <!-- Shift Information -->
+    <div class="no-print bg-white rounded-xl shadow-md p-6 mb-8">
+      <h2 class="text-xl font-semibold mb-4 text-gray-800">Shift Information</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <h3 class="font-medium text-blue-800 mb-2">Weekday Shifts</h3>
+          <ul class="space-y-1 text-gray-700 text-sm">
+            <li><strong>S1:</strong> 12:30pm - 9:30pm</li>
+            <li><strong>S2:</strong> 2pm - 11pm</li>
+            <li><strong>S3:</strong> 4:30pm - 1:30am</li>
+          </ul>
+        </div>
+        <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+          <h3 class="font-medium text-yellow-800 mb-2">Saturday Shifts</h3>
+          <ul class="space-y-1 text-gray-700 text-sm">
+            <li><strong>S1:</strong> 12:30pm - 9:30pm</li>
+            <li><strong>S2:</strong> 1:30pm - 10:30pm</li>
+          </ul>
+        </div>
+        <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+          <h3 class="font-medium text-green-800 mb-2">Sunday Shift</h3>
+          <p class="text-gray-700 text-sm"><strong>General:</strong> 1:30pm - 10:30pm</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team Members -->
+    <div class="no-print mb-8 p-6 bg-white rounded-xl shadow-md">
+      <h2 class="text-xl font-semibold mb-4 text-gray-800">Team Members</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Lokesh -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center space-x-3">
+          <div class="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center">
+            <span class="text-white font-medium text-lg">L</span>
+          </div>
+          <div>
+            <h3 class="font-medium text-gray-800">Lokesh</h3>
+          </div>
+        </div>
+        <!-- Tharani -->
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 flex items-center space-x-3">
+          <div class="h-12 w-12 rounded-full bg-purple-500 flex items-center justify-center">
+            <span class="text-white font-medium text-lg">T</span>
+          </div>
+          <div>
+            <h3 class="font-medium text-gray-800">Tharani</h3>
+          </div>
+        </div>
+        <!-- Sandhuja -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-3">
+          <div class="h-12 w-12 rounded-full bg-green-500 flex items-center justify-center">
+            <span class="text-white font-medium text-lg">S</span>
+          </div>
+          <div>
+            <h3 class="font-medium text-gray-800">Sandhuja</h3>
+          </div>
+        </div>
+        <!-- Haneesha -->
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-3">
+          <div class="h-12 w-12 rounded-full bg-red-500 flex items-center justify-center">
+            <span class="text-white font-medium text-lg">H</span>
+          </div>
+          <div>
+            <h3 class="font-medium text-gray-800">Haneesha</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- leave request -->
+    <form action="/naveen" method="POST">
+      <div class="no-print bg-white rounded-xl shadow-md p-6 mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">Leave Request</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-gray-700 mb-2 font-medium">Select Member</label>
+            <select name="member"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required>
+              <option value="">Select a team member</option>
+              <option value="haneesha">Haneesha</option>
+              <option value="lokesh">Lokesh</option>
+              <option value="tharani">Tharani</option>
+              <option value="sandhuja">Sandhuja</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 mb-2 font-medium">Request Date</label>
+            <input type="date" name="date"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required />
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <label class="block text-gray-700 mb-2 font-medium">Reason (Optional)</label>
+          <textarea name="reason"
+            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            rows="3" placeholder="Leave reason..."></textarea>
+        </div>
+
+        <button
+          class="mt-4 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition duration-200 font-medium"
+          type="submit">
+          Submit Request
+        </button>
+      </div>
+    </form>
+
+    <div id="pen"><a href="/getdata"><button>Leave Datas</button></a></div>
+
+
+
+    <!-- Calendar -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <h2 class="text-xl font-semibold mb-4 text-gray-800">Roster Calendar</h2>
+      <div class="calendar">
+        <div class="calendar-header">
+          <div>
+            <button class="nav-button mr-2 p-2 rounded border" onclick="changeMonth(-1)">← Previous</button>
+            <button class="nav-button p-2 rounded border" onclick="changeMonth(1)">Next →</button>
+          </div>
+          <span id="monthName" class="month-title font-medium"></span>
+          <div class="legend">
+            <div class="s1">S1</div>
+            <div class="s2">S2</div>
+            <div class="s3">S3</div>
+            <div class="g">G</div>
+            <div class="off">Normal Off</div>
+            <div class="req-off">Requested Off</div>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Sun</th>
+              <th>Mon</th>
+              <th>Tue</th>
+              <th>Wed</th>
+              <th>Thu</th>
+              <th>Fri</th>
+              <th>Sat</th>
+            </tr>
+          </thead>
+          <tbody id="calendarBody"></tbody>
+        </table>
+      </div>
+
+      <div class="summary mt-6">
+        <h3 class="text-lg font-semibold mb-2">Monthly Summary</h3>
+        <div id="summaryTable"></div>
+      </div>
+    </div>
+
+
+  
+  <script>
+    // Team members and Night Limits
+    const MEMBERS = ["Lokesh", "Tharani", "Sandhuja", "Haneesha"];
+    const NIGHT_LIMIT = { "Tharani": 4, "Haneesha": 4, "Sandhuja": 7, "Lokesh": 999 };
+
+    let leaveRequests = [];
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+    let monthlyShifts = {};
+    let monthlySummary = {};
+
+    function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+
+    async function fetchLeaveRequests() {
+      try {
+        const response = await fetch('/leaves');
+        leaveRequests = await response.json();
+      } catch (error) {
+        console.error('Error fetching leave requests:', error);
+      }
+    }
+
+    function getLeaveForDate(dateStr) {
+      return leaveRequests.find(leave => leave.date === dateStr);
+    }
+
+    function calculateMonthlyShifts(month, year) {
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      let saturdays = 0, sundays = 0;
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayOfWeek = new Date(year, month, day).getDay();
+        if (dayOfWeek === 0) sundays++;
+        if (dayOfWeek === 6) saturdays++;
+      }
+
+      const monthlyOffs = saturdays + sundays;
+      const workingDaysPerMember = daysInMonth - monthlyOffs;
+
+      const memberStats = {};
+      MEMBERS.forEach(member => {
+        memberStats[member] = { offs: monthlyOffs, workingDays: workingDaysPerMember, nightShifts: 0 };
+      });
+
+      const memberOffCounts = {};
+      const memberWorkCounts = {};
+      MEMBERS.forEach(member => {
+        memberOffCounts[member] = 0;
+        memberWorkCounts[member] = 0;
+      });
+
+      const sundayOffsPerMember = Math.floor(sundays / 2);
+      const remainingOffsPerMember = monthlyOffs - sundayOffsPerMember;
+
+      const shifts = {};
+      let nightShiftCounts = { "Tharani": 0, "Haneesha": 0, "Sandhuja": 0, "Lokesh": 0 };
+      let sundayCount = 0;
+      let offRotation = 0;
+
+      const remainingOffs = {};
+      MEMBERS.forEach(member => {
+        remainingOffs[member] = remainingOffsPerMember;
+      });
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const dayOfWeek = date.getDay();
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+        const leave = getLeaveForDate(dateStr);
+        if (leave) {
+          const memberName = capitalize(leave.member);
+          shifts[day] = { [memberName]: 'REQ-OFF' };
+          memberOffCounts[memberName]++;
+          remainingOffs[memberName]--;
+          continue;
+        }
+
+        shifts[day] = {};
+
+        if (dayOfWeek === 0) {
+          const offMembers = [MEMBERS[(sundayCount * 2) % 4], MEMBERS[(sundayCount * 2 + 1) % 4]];
+          const workMembers = MEMBERS.filter(m => !offMembers.includes(m));
+
+          workMembers.forEach(member => {
+            shifts[day][member] = 'G';
+            memberWorkCounts[member]++;
+          });
+          offMembers.forEach(member => {
+            shifts[day][member] = 'OFF';
+            memberOffCounts[member]++;
+          });
+          sundayCount++;
+        } else {
+          const needsOff = MEMBERS.filter(m => remainingOffs[m] > 0);
+
+          if (needsOff.length > 0) {
+            const offMember = needsOff[offRotation % needsOff.length];
+            const workMembers = MEMBERS.filter(m => m !== offMember);
+
+            let s3Member = null;
+            const priorityOrder = ['Tharani', 'Haneesha', 'Sandhuja', 'Lokesh'];
+            for (let member of priorityOrder) {
+              if (workMembers.includes(member) && nightShiftCounts[member] < NIGHT_LIMIT[member]) {
+                s3Member = member;
+                break;
+              }
+            }
+            if (!s3Member) s3Member = 'Lokesh';
+
+            let otherMembers = workMembers.filter(m => m !== s3Member);
+
+            if (day === 12 || day === 27) {
+              otherMembers = otherMembers.sort();
+            }
+
+            let shiftAssignments = ['S1', 'S2', 'S3'];
+
+            shifts[day][otherMembers[0]] = shiftAssignments[0];
+            shifts[day][otherMembers[1]] = shiftAssignments[1];
+            shifts[day][s3Member] = shiftAssignments[2];
+            shifts[day][offMember] = 'OFF';
+
+            memberOffCounts[offMember]++;
+            remainingOffs[offMember]--;
+            memberWorkCounts[otherMembers[0]]++;
+            memberWorkCounts[otherMembers[1]]++;
+            memberWorkCounts[s3Member]++;
+            nightShiftCounts[s3Member]++;
+            memberStats[s3Member].nightShifts++;
+          } else {
+            let shiftPattern = dayOfWeek === 6 ? ['S1', 'S2', 'S2', 'S3'] : ['S1', 'S2', 'S2', 'S3'];
+
+            MEMBERS.forEach((member, idx) => {
+              const shiftType = shiftPattern[idx];
+              shifts[day][member] = shiftType;
+              memberWorkCounts[member]++;
+              if (shiftType === 'S3') {
+                if (nightShiftCounts[member] < NIGHT_LIMIT[member]) {
+                  nightShiftCounts[member]++;
+                  memberStats[member].nightShifts++;
+                }
+              }
+            });
+          }
+          offRotation++;
+        }
+
+        // ✅ FIX: ensure no skipped members
+        MEMBERS.forEach(member => {
+          if (!(member in shifts[day])) {
+            shifts[day][member] = 'S3'; // fallback shift (not OFF, so offs don’t inflate)
+            memberWorkCounts[member]++;
+          }
+        });
+      }
+
+      MEMBERS.forEach(member => {
+        memberStats[member].offs = monthlyOffs;
+        memberStats[member].workingDays = workingDaysPerMember;
+      });
+
+      monthlyShifts = shifts;
+      monthlySummary = memberStats;
+    }
+
+    function generateSummaryTable() {
+      const summaryDiv = document.getElementById('summaryTable');
+      let html = '<table><thead><tr><th>Member</th><th>Working Days</th><th>Offs</th><th>Night Shifts</th></tr></thead><tbody>';
+
+      MEMBERS.forEach(member => {
+        const stats = monthlySummary[member] || { workingDays: 0, offs: 0, nightShifts: 0 };
+        html += `<tr><td>${member}</td><td>${stats.workingDays}</td><td>${stats.offs}</td><td>${stats.nightShifts}</td></tr>`;
+      });
+
+      html += '</tbody></table>';
+      summaryDiv.innerHTML = html;
+    }
+
+    async function generateCalendar(month, year) {
+      const calendarBody = document.getElementById("calendarBody");
+      const monthName = document.getElementById("monthName");
+      const today = new Date();
+
+      monthName.textContent = new Date(year, month).toLocaleString("default", {
+        month: "long",
+        year: "numeric"
+      });
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      calendarBody.innerHTML = "";
+      let row = document.createElement("tr");
+
+      for (let i = 0; i < firstDay; i++) {
+        row.appendChild(document.createElement("td"));
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        let cell = document.createElement("td");
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+        cell.innerHTML = `<div class="day-number">${day}</div>`;
+
+        if (monthlyShifts[day]) {
+          Object.entries(monthlyShifts[day]).forEach(([member, shift]) => {
+            if (shift === 'REQ-OFF') {
+              cell.innerHTML += `<div class="req-off">${member}:OFF</div>`;
+            } else {
+              const shiftClass = shift.toLowerCase();
+              cell.innerHTML += `<div class="shift ${shiftClass}">${member}:${shift}</div>`;
+            }
+          });
+        }
+
+        if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+          cell.classList.add("today");
+        }
+
+        row.appendChild(cell);
+
+        if ((day + firstDay) % 7 === 0) {
+          calendarBody.appendChild(row);
+          row = document.createElement("tr");
+        }
+      }
+
+      if (row.children.length > 0) {
+        calendarBody.appendChild(row);
+      }
+
+      generateSummaryTable();
+    }
+
+    async function changeMonth(offset) {
+      currentMonth += offset;
+      if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+      } else if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+      }
+      calculateMonthlyShifts(currentMonth, currentYear);
+      await generateCalendar(currentMonth, currentYear);
+    }
+
+    async function initCalendar() {
+      await fetchLeaveRequests();
+      calculateMonthlyShifts(currentMonth, currentYear);
+      await generateCalendar(currentMonth, currentYear);
+    }
+
+    initCalendar();
+  </script>
+</body>
+
+</html>

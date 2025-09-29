@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Leave Requests</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+  <div class="w-full max-w-5xl bg-white rounded-2xl shadow-lg p-6">
+    <h1 class="text-2xl font-bold text-center text-gray-700 mb-6">Leave Requests</h1>
+
+    <table class="w-full border-collapse border border-gray-300">
+      <thead class="bg-gray-200 text-gray-700">
+        <tr>
+          <th class="border border-gray-300 px-4 py-2">#</th>
+          <th class="border border-gray-300 px-4 py-2">Member</th>
+          <th class="border border-gray-300 px-4 py-2">Date</th>
+          <th class="border border-gray-300 px-4 py-2">Reason</th>
+          <th class="border border-gray-300 px-4 py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (result && result.length > 0) { %>
+          <% result.forEach((item, index) => { %>
+            <tr class="hover:bg-gray-100">
+              <td class="border border-gray-300 px-4 py-2 text-center"><%= index + 1 %></td>
+              <td class="border border-gray-300 px-4 py-2"><%= item.member %></td>
+              <td class="border border-gray-300 px-4 py-2"><%= item.date %></td>
+              <td class="border border-gray-300 px-4 py-2"><%= item.reason %></td>
+              <td class="border border-gray-300 px-4 py-2 text-center space-x-2">
+                <!-- Edit button -->
+                <button 
+                  class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+                  onclick="openEditModal('<%= item._id %>', '<%= item.member %>', '<%= item.date %>', '<%= item.reason %>')">
+                  Edit
+                </button>
+
+                <!-- Delete button -->
+                <button 
+                  class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                  onclick="deleteRequest('<%= item._id %>')">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="5" class="text-center border border-gray-300 px-4 py-4 text-gray-500">
+              No leave requests found
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="fixed inset-0 bg-black bg-opacity-40 hidden flex items-center justify-center">
+    <div class="bg-white p-6 rounded-xl w-full max-w-md shadow-lg">
+      <h2 class="text-xl font-bold mb-4 text-gray-700">Edit Leave Request</h2>
+      <form id="editForm">
+        <input type="hidden" id="editId" name="id">
+
+        <div class="mb-3">
+          <label class="block text-gray-600">Member</label>
+          <input type="text" id="editMember" name="member" class="w-full border rounded px-3 py-2">
+        </div>
+
+        <div class="mb-3">
+          <label class="block text-gray-600">Date</label>
+          <input type="date" id="editDate" name="date" class="w-full border rounded px-3 py-2">
+        </div>
+
+        <div class="mb-3">
+          <label class="block text-gray-600">Reason</label>
+          <textarea id="editReason" name="reason" class="w-full border rounded px-3 py-2"></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-2">
+          <button type="button" class="bg-gray-400 px-4 py-2 rounded text-white" onclick="closeEditModal()">Cancel</button>
+          <button type="submit" class="bg-green-500 px-4 py-2 rounded text-white">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Delete Request
+    async function deleteRequest(id) {
+      const res = await fetch(`/deleterequest/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      console.log(data.message);
+      location.reload();
+    }
+
+    // Open Edit Modal
+    function openEditModal(id, member, date, reason) {
+      document.getElementById("editId").value = id;
+      document.getElementById("editMember").value = member;
+      document.getElementById("editDate").value = date;
+      document.getElementById("editReason").value = reason;
+      document.getElementById("editModal").classList.remove("hidden");
+    }
+
+    // Close Edit Modal
+    function closeEditModal() {
+      document.getElementById("editModal").classList.add("hidden");
+    }
+
+    // Handle Edit Submit
+    document.getElementById("editForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById("editId").value;
+      const member = document.getElementById("editMember").value;
+      const date = document.getElementById("editDate").value;
+      const reason = document.getElementById("editReason").value;
+
+      const res = await fetch(`/editrequest/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ member, date, reason })
+      });
+
+      const data = await res.json();
+      console.log(data.message);
+      location.reload();
+    });
+  </script>
+</body>
+</html>
