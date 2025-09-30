@@ -316,6 +316,17 @@
 
     <div id="pen"><a href="/getdata"><button>Leave Datas</button></a></div>
 
+    <script>
+      fetch("/tree")
+        .then(response => response.json()) // convert response to JSON
+        .then(data => {
+          console.log("API Response:", data);
+        })
+        .catch(error => {
+          console.error(" Error fetching data:", error);
+        });
+    </script>
+
 
 
     <!-- Calendar -->
@@ -361,262 +372,298 @@
 
 
   
-  <script>
-    // Team members and Night Limits
-    const MEMBERS = ["Lokesh", "Tharani", "Sandhuja", "Haneesha"];
-    const NIGHT_LIMIT = { "Tharani": 4, "Haneesha": 4, "Sandhuja": 7, "Lokesh": 999 };
+ <script>
+  // Team members and Night Limits
+const MEMBERS = ["Lokesh", "Tharani", "Sandhuja", "Haneesha"];
+const NIGHT_LIMIT = { "Tharani": 4, "Haneesha": 4, "Sandhuja": 7, "Lokesh": 999 };
 
-    let leaveRequests = [];
-    let currentMonth = new Date().getMonth();
-    let currentYear = new Date().getFullYear();
-    let monthlyShifts = {};
-    let monthlySummary = {};
+let leaveRequests = [];
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+let monthlyShifts = {};
+let monthlySummary = {};
 
-    function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 
-    async function fetchLeaveRequests() {
-      try {
-        const response = await fetch('/leaves');
-        leaveRequests = await response.json();
-      } catch (error) {
-        console.error('Error fetching leave requests:', error);
-      }
-    }
+async function fetchLeaveRequests() {
+  try {
+    const response = await fetch('/leaves');
+    leaveRequests = await response.json();
+    console.log('Fetched leave requests:', leaveRequests);
+  } catch (error) {
+    console.error('Error fetching leave requests:', error);
+  }
+}
 
-    function getLeaveForDate(dateStr) {
-      return leaveRequests.find(leave => leave.date === dateStr);
-    }
+function getLeaveForDate(dateStr) {
+  return leaveRequests.find(leave => leave.date === dateStr);
+}
 
-    function calculateMonthlyShifts(month, year) {
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      let saturdays = 0, sundays = 0;
+function calculateMonthlyShifts(month, year) {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  let saturdays = 0, sundays = 0;
 
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dayOfWeek = new Date(year, month, day).getDay();
-        if (dayOfWeek === 0) sundays++;
-        if (dayOfWeek === 6) saturdays++;
-      }
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayOfWeek = new Date(year, month, day).getDay();
+    if (dayOfWeek === 0) sundays++;
+    if (dayOfWeek === 6) saturdays++;
+  }
 
-      const monthlyOffs = saturdays + sundays;
-      const workingDaysPerMember = daysInMonth - monthlyOffs;
+  const monthlyOffs = saturdays + sundays;
+  const workingDaysPerMember = daysInMonth - monthlyOffs;
 
-      const memberStats = {};
-      MEMBERS.forEach(member => {
-        memberStats[member] = { offs: monthlyOffs, workingDays: workingDaysPerMember, nightShifts: 0 };
-      });
+  const memberStats = {};
+  MEMBERS.forEach(member => {
+    memberStats[member] = { offs: monthlyOffs, workingDays: workingDaysPerMember, nightShifts: 0 };
+  });
 
-      const memberOffCounts = {};
-      const memberWorkCounts = {};
-      MEMBERS.forEach(member => {
-        memberOffCounts[member] = 0;
-        memberWorkCounts[member] = 0;
-      });
+  const memberOffCounts = {};
+  const memberWorkCounts = {};
+  MEMBERS.forEach(member => {
+    memberOffCounts[member] = 0;
+    memberWorkCounts[member] = 0;
+  });
 
-      const sundayOffsPerMember = Math.floor(sundays / 2);
-      const remainingOffsPerMember = monthlyOffs - sundayOffsPerMember;
+  const sundayOffsPerMember = Math.floor(sundays / 2);
+  const remainingOffsPerMember = monthlyOffs - sundayOffsPerMember;
 
-      const shifts = {};
-      let nightShiftCounts = { "Tharani": 0, "Haneesha": 0, "Sandhuja": 0, "Lokesh": 0 };
-      let sundayCount = 0;
-      let offRotation = 0;
+  const shifts = {};
+  let nightShiftCounts = { "Tharani": 0, "Haneesha": 0, "Sandhuja": 0, "Lokesh": 0 };
+  let sundayCount = 0;
+  let offRotation = 0;
 
-      const remainingOffs = {};
-      MEMBERS.forEach(member => {
-        remainingOffs[member] = remainingOffsPerMember;
-      });
+  const remainingOffs = {};
+  MEMBERS.forEach(member => {
+    remainingOffs[member] = remainingOffsPerMember;
+  });
 
-      for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day);
-        const dayOfWeek = date.getDay();
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const dayOfWeek = date.getDay();
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-        const leave = getLeaveForDate(dateStr);
-        if (leave) {
-          const memberName = capitalize(leave.member);
-          shifts[day] = { [memberName]: 'REQ-OFF' };
-          memberOffCounts[memberName]++;
-          remainingOffs[memberName]--;
-          continue;
+    const leave = getLeaveForDate(dateStr);
+    if (leave) {
+      const memberName = capitalize(leave.member);
+      shifts[day] = {};
+
+      // Assign leave member as REQ-OFF
+      shifts[day][memberName] = 'REQ-OFF';
+      memberOffCounts[memberName]++;
+      remainingOffs[memberName]--;
+
+      // Assign shifts to others (weekday pattern)
+      const workMembers = MEMBERS.filter(m => m !== memberName);
+
+      let s3Member = null;
+      const priorityOrder = ['Tharani', 'Haneesha', 'Sandhuja', 'Lokesh'];
+      for (let m of priorityOrder) {
+        if (workMembers.includes(m) && nightShiftCounts[m] < NIGHT_LIMIT[m]) {
+          s3Member = m;
+          break;
         }
+      }
+      if (!s3Member) s3Member = 'Lokesh';
 
-        shifts[day] = {};
+      let otherMembers = workMembers.filter(m => m !== s3Member);
+      let shiftAssignments = ['S1', 'S2'];
 
-        if (dayOfWeek === 0) {
-          const offMembers = [MEMBERS[(sundayCount * 2) % 4], MEMBERS[(sundayCount * 2 + 1) % 4]];
-          const workMembers = MEMBERS.filter(m => !offMembers.includes(m));
+      shifts[day][otherMembers[0]] = shiftAssignments[0];
+      shifts[day][otherMembers[1]] = shiftAssignments[1];
+      shifts[day][s3Member] = 'S3';
 
-          workMembers.forEach(member => {
-            shifts[day][member] = 'G';
-            memberWorkCounts[member]++;
-          });
-          offMembers.forEach(member => {
-            shifts[day][member] = 'OFF';
-            memberOffCounts[member]++;
-          });
-          sundayCount++;
-        } else {
-          const needsOff = MEMBERS.filter(m => remainingOffs[m] > 0);
+      memberWorkCounts[otherMembers[0]]++;
+      memberWorkCounts[otherMembers[1]]++;
+      memberWorkCounts[s3Member]++;
+      nightShiftCounts[s3Member]++;
+      memberStats[s3Member].nightShifts++;
 
-          if (needsOff.length > 0) {
-            const offMember = needsOff[offRotation % needsOff.length];
-            const workMembers = MEMBERS.filter(m => m !== offMember);
+      continue;
+    }
 
-            let s3Member = null;
-            const priorityOrder = ['Tharani', 'Haneesha', 'Sandhuja', 'Lokesh'];
-            for (let member of priorityOrder) {
-              if (workMembers.includes(member) && nightShiftCounts[member] < NIGHT_LIMIT[member]) {
-                s3Member = member;
-                break;
-              }
-            }
-            if (!s3Member) s3Member = 'Lokesh';
+    shifts[day] = {};
 
-            let otherMembers = workMembers.filter(m => m !== s3Member);
+    if (dayOfWeek === 0) {
+      const offMembers = [MEMBERS[(sundayCount * 2) % 4], MEMBERS[(sundayCount * 2 + 1) % 4]];
+      const workMembers = MEMBERS.filter(m => !offMembers.includes(m));
 
-            if (day === 12 || day === 27) {
-              otherMembers = otherMembers.sort();
-            }
+      workMembers.forEach(member => {
+        shifts[day][member] = 'G';
+        memberWorkCounts[member]++;
+      });
+      offMembers.forEach(member => {
+        shifts[day][member] = 'OFF';
+        memberOffCounts[member]++;
+      });
+      sundayCount++;
+    } 
+    else {
+      const needsOff = MEMBERS.filter(m => remainingOffs[m] > 0);
 
-            let shiftAssignments = ['S1', 'S2', 'S3'];
+      if (needsOff.length > 0) {
+        const offMember = needsOff[offRotation % needsOff.length];
+        const workMembers = MEMBERS.filter(m => m !== offMember);
 
-            shifts[day][otherMembers[0]] = shiftAssignments[0];
-            shifts[day][otherMembers[1]] = shiftAssignments[1];
-            shifts[day][s3Member] = shiftAssignments[2];
-            shifts[day][offMember] = 'OFF';
-
-            memberOffCounts[offMember]++;
-            remainingOffs[offMember]--;
-            memberWorkCounts[otherMembers[0]]++;
-            memberWorkCounts[otherMembers[1]]++;
-            memberWorkCounts[s3Member]++;
-            nightShiftCounts[s3Member]++;
-            memberStats[s3Member].nightShifts++;
-          } else {
-            let shiftPattern = dayOfWeek === 6 ? ['S1', 'S2', 'S2', 'S3'] : ['S1', 'S2', 'S2', 'S3'];
-
-            MEMBERS.forEach((member, idx) => {
-              const shiftType = shiftPattern[idx];
-              shifts[day][member] = shiftType;
-              memberWorkCounts[member]++;
-              if (shiftType === 'S3') {
-                if (nightShiftCounts[member] < NIGHT_LIMIT[member]) {
-                  nightShiftCounts[member]++;
-                  memberStats[member].nightShifts++;
-                }
-              }
-            });
+        let s3Member = null;
+        const priorityOrder = ['Tharani', 'Haneesha', 'Sandhuja', 'Lokesh'];
+        for (let member of priorityOrder) {
+          if (workMembers.includes(member) && nightShiftCounts[member] < NIGHT_LIMIT[member]) {
+            s3Member = member;
+            break;
           }
-          offRotation++;
+        }
+        if (!s3Member) s3Member = 'Lokesh';
+
+        let otherMembers = workMembers.filter(m => m !== s3Member);
+        if (day === 12 || day === 27) {
+          otherMembers = otherMembers.sort();
         }
 
-        // ✅ FIX: ensure no skipped members
-        MEMBERS.forEach(member => {
-          if (!(member in shifts[day])) {
-            shifts[day][member] = 'S3'; // fallback shift (not OFF, so offs don’t inflate)
-            memberWorkCounts[member]++;
+        let shiftAssignments = ['S1', 'S2', 'S3'];
+        shifts[day][otherMembers[0]] = shiftAssignments[0];
+        shifts[day][otherMembers[1]] = shiftAssignments[1];
+        shifts[day][s3Member] = shiftAssignments[2];
+        shifts[day][offMember] = 'OFF';
+
+        memberOffCounts[offMember]++;
+        remainingOffs[offMember]--;
+        memberWorkCounts[otherMembers[0]]++;
+        memberWorkCounts[otherMembers[1]]++;
+        memberWorkCounts[s3Member]++;
+        nightShiftCounts[s3Member]++;
+        memberStats[s3Member].nightShifts++;
+      } else {
+        let shiftPattern = dayOfWeek === 6 ? ['S1', 'S2', 'S2', 'S3'] : ['S1', 'S2', 'S2', 'S3'];
+
+        MEMBERS.forEach((member, idx) => {
+          const shiftType = shiftPattern[idx];
+          shifts[day][member] = shiftType;
+          memberWorkCounts[member]++;
+          if (shiftType === 'S3') {
+            if (nightShiftCounts[member] < NIGHT_LIMIT[member]) {
+              nightShiftCounts[member]++;
+              memberStats[member].nightShifts++;
+            }
           }
         });
       }
-
-      MEMBERS.forEach(member => {
-        memberStats[member].offs = monthlyOffs;
-        memberStats[member].workingDays = workingDaysPerMember;
-      });
-
-      monthlyShifts = shifts;
-      monthlySummary = memberStats;
+      offRotation++;
     }
 
-    function generateSummaryTable() {
-      const summaryDiv = document.getElementById('summaryTable');
-      let html = '<table><thead><tr><th>Member</th><th>Working Days</th><th>Offs</th><th>Night Shifts</th></tr></thead><tbody>';
-
-      MEMBERS.forEach(member => {
-        const stats = monthlySummary[member] || { workingDays: 0, offs: 0, nightShifts: 0 };
-        html += `<tr><td>${member}</td><td>${stats.workingDays}</td><td>${stats.offs}</td><td>${stats.nightShifts}</td></tr>`;
-      });
-
-      html += '</tbody></table>';
-      summaryDiv.innerHTML = html;
-    }
-
-    async function generateCalendar(month, year) {
-      const calendarBody = document.getElementById("calendarBody");
-      const monthName = document.getElementById("monthName");
-      const today = new Date();
-
-      monthName.textContent = new Date(year, month).toLocaleString("default", {
-        month: "long",
-        year: "numeric"
-      });
-
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-      calendarBody.innerHTML = "";
-      let row = document.createElement("tr");
-
-      for (let i = 0; i < firstDay; i++) {
-        row.appendChild(document.createElement("td"));
+    MEMBERS.forEach(member => {
+      if (!(member in shifts[day])) {
+        shifts[day][member] = 'S3';
+        memberWorkCounts[member]++;
       }
+    });
+  }
 
-      for (let day = 1; day <= daysInMonth; day++) {
-        let cell = document.createElement("td");
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  MEMBERS.forEach(member => {
+    memberStats[member].offs = monthlyOffs;
+    memberStats[member].workingDays = workingDaysPerMember;
+  });
 
-        cell.innerHTML = `<div class="day-number">${day}</div>`;
+  monthlyShifts = shifts;
+  monthlySummary = memberStats;
+}
 
-        if (monthlyShifts[day]) {
-          Object.entries(monthlyShifts[day]).forEach(([member, shift]) => {
+function generateSummaryTable() {
+  const summaryDiv = document.getElementById('summaryTable');
+  let html = '<table><thead><tr><th>Member</th><th>Working Days</th><th>Offs</th><th>Night Shifts</th></tr></thead><tbody>';
+
+  MEMBERS.forEach(member => {
+    const stats = monthlySummary[member] || { workingDays: 0, offs: 0, nightShifts: 0 };
+    html += `<tr><td>${member}</td><td>${stats.workingDays}</td><td>${stats.offs}</td><td>${stats.nightShifts}</td></tr>`;
+  });
+
+  html += '</tbody></table>';
+  summaryDiv.innerHTML = html;
+}
+
+async function generateCalendar(month, year) {
+  const calendarBody = document.getElementById("calendarBody");
+  const monthName = document.getElementById("monthName");
+  const today = new Date();
+
+  monthName.textContent = new Date(year, month).toLocaleString("default", {
+    month: "long",
+    year: "numeric"
+  });
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  calendarBody.innerHTML = "";
+  let row = document.createElement("tr");
+
+  for (let i = 0; i < firstDay; i++) {
+    row.appendChild(document.createElement("td"));
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    let cell = document.createElement("td");
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+    cell.innerHTML = `<div class="day-number">${day}</div>`;
+
+    if (monthlyShifts[day]) {
+      // enforce order: S1, S2, S3, OFF, REQ-OFF
+      const order = ["S1", "S2", "S3", "OFF", "REQ-OFF", "G"];
+      order.forEach(shiftType => {
+        Object.entries(monthlyShifts[day]).forEach(([member, shift]) => {
+          if (shift === shiftType) {
             if (shift === 'REQ-OFF') {
               cell.innerHTML += `<div class="req-off">${member}:OFF</div>`;
             } else {
               const shiftClass = shift.toLowerCase();
               cell.innerHTML += `<div class="shift ${shiftClass}">${member}:${shift}</div>`;
             }
-          });
-        }
-
-        if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
-          cell.classList.add("today");
-        }
-
-        row.appendChild(cell);
-
-        if ((day + firstDay) % 7 === 0) {
-          calendarBody.appendChild(row);
-          row = document.createElement("tr");
-        }
-      }
-
-      if (row.children.length > 0) {
-        calendarBody.appendChild(row);
-      }
-
-      generateSummaryTable();
+          }
+        });
+      });
     }
 
-    async function changeMonth(offset) {
-      currentMonth += offset;
-      if (currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
-      } else if (currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
-      }
-      calculateMonthlyShifts(currentMonth, currentYear);
-      await generateCalendar(currentMonth, currentYear);
+    if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+      cell.classList.add("today");
     }
 
-    async function initCalendar() {
-      await fetchLeaveRequests();
-      calculateMonthlyShifts(currentMonth, currentYear);
-      await generateCalendar(currentMonth, currentYear);
-    }
+    row.appendChild(cell);
 
-    initCalendar();
-  </script>
+    if ((day + firstDay) % 7 === 0) {
+      calendarBody.appendChild(row);
+      row = document.createElement("tr");
+    }
+  }
+
+  if (row.children.length > 0) {
+    calendarBody.appendChild(row);
+  }
+
+  generateSummaryTable();
+}
+
+async function changeMonth(offset) {
+  currentMonth += offset;
+  if (currentMonth < 0) {
+    currentMonth = 11;
+    currentYear--;
+  } else if (currentMonth > 11) {
+    currentMonth = 0;
+    currentYear++;
+  }
+  calculateMonthlyShifts(currentMonth, currentYear);
+  await generateCalendar(currentMonth, currentYear);
+}
+
+async function initCalendar() {
+  await fetchLeaveRequests();
+  calculateMonthlyShifts(currentMonth, currentYear);
+  await generateCalendar(currentMonth, currentYear);
+}
+
+initCalendar();
+
+ </script>
 </body>
 
 </html>
